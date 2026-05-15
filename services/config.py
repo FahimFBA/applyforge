@@ -21,6 +21,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+from utils.constants import (
+    STATUS_DRAFT_GENERATED,
+    STATUS_FAILED,
+    STATUS_NOT_APPLIED,
+    STATUS_PROCESSING,
+)
+
 
 @dataclass
 class Config:
@@ -161,13 +168,13 @@ class Config:
     # ------------------------------------------------------------------ #
     # Spreadsheet status vocabulary                                       #
     # ------------------------------------------------------------------ #
-    status_not_applied: str = "not applied"
-    status_processing: str = "processing"
-    status_draft_generated: str = "draft generated"
-    status_failed: str = "failed"
+    status_not_applied: str = STATUS_NOT_APPLIED
+    status_processing: str = STATUS_PROCESSING
+    status_draft_generated: str = STATUS_DRAFT_GENERATED
+    status_failed: str = STATUS_FAILED
 
     # Statuses that qualify a row for processing (case-insensitive match)
-    allowed_statuses: list = field(default_factory=lambda: ["not applied"])
+    allowed_statuses: list = field(default_factory=lambda: [STATUS_NOT_APPLIED])
 
     # ------------------------------------------------------------------ #
     # Lifecycle hooks                                                     #
@@ -178,7 +185,7 @@ class Config:
         for directory in (self.output_dir, self.logs_dir, self.resumes_dir, self.raw_resumes_dir):
             directory.mkdir(parents=True, exist_ok=True)
 
-    def validate(self) -> "Config":
+    def validate(self) -> Config:
         """
         Validate that all required secrets are present.
 

@@ -56,8 +56,8 @@ load_dotenv(_PROJECT_ROOT / ".env")
 from services.config import get_config
 from services.logger import setup_logger
 from services.openai_client import OpenAIClient
-from services.resume_optimizer import extract_pdf_text
 from services.prompts import RESUME_OPTIMIZER_SYSTEM, RESUME_OPTIMIZER_USER
+from services.resume_optimizer import extract_pdf_text
 
 logger = setup_logger(__name__)
 

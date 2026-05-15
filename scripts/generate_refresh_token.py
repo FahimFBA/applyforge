@@ -27,12 +27,13 @@ Alternatively, if you prefer not to save the JSON file, set GOOGLE_OAUTH_CLIENT_
 your .env file and run the script - it will read them from the environment.
 """
 from __future__ import annotations
-from dotenv import load_dotenv
-from pathlib import Path
+
 import json
 import os
 import sys
+from pathlib import Path
 
+from dotenv import load_dotenv
 
 # Allow running directly from the project root or from the scripts/ directory
 sys.path.insert(0, str(Path(__file__).parent.parent))

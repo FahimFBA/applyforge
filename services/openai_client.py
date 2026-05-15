@@ -22,11 +22,14 @@ Usage
     text = client.generate(system_prompt="You are ...", user_prompt="Write ...")
 """
 from __future__ import annotations
-from openai import OpenAI, APIConnectionError, APIError, RateLimitError
+
+import time
+from typing import Optional
+
+from openai import APIConnectionError, APIError, OpenAI, RateLimitError
+
 from services.config import Config
 from services.logger import setup_logger
-from typing import Optional
-import time
 
 logger = setup_logger(__name__)
 

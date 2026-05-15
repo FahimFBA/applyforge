@@ -1,0 +1,49 @@
+# ============================================================================
+# ApplyForge — Continuous Integration
+# ============================================================================
+#
+# Runs on every push and on pull requests targeting main.
+# Checks: ruff lint → unit tests
+#
+# To run the same checks locally:
+#   pip install -r requirements-dev.txt
+#   ruff check .
+#   python -m unittest discover -s tests -v
+# ============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  lint-and-test:
+    name: Lint and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Lint with ruff
+        run: ruff check .
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v

@@ -1,0 +1,37 @@
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes (undefined names, unused imports)
+    "W",   # pycodestyle warnings
+    "I",   # isort (import order)
+    "B",   # flake8-bugbear (common bugs and design issues)
+    "UP",  # pyupgrade (modernise syntax for target Python version)
+]
+ignore = [
+    "B008",  # function call in default argument — used intentionally in dataclass field()
+    "UP007", # use X | Y for union type — keep Optional[] for readability
+    "UP045", # use X | None — keep Optional[X] for consistency with UP007
+]
+
+[tool.ruff.lint.per-file-ignores]
+# load_dotenv() must run before service imports so env vars are available at import time
+"main.py" = ["E402"]
+# google module mocking must happen before `import main`, triggering E402
+"tests/test_main.py" = ["E402", "E501"]
+# long literal strings in test data and prompt text are intentional
+"tests/test_sheets.py" = ["E501"]
+"services/prompts.py" = ["E501"]
+# one-shot scripts with deliberate import ordering
+"scripts/*.py" = ["E402"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["services", "utils", "scripts"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+warn_unused_ignores = true

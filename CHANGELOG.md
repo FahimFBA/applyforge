@@ -7,6 +7,68 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.13.0] — 2026-05-16
+
+### Added
+
+- **`utils/constants.py`** — single source of truth for all domain constants:
+  - Spreadsheet status values (`STATUS_NOT_APPLIED`, `STATUS_PROCESSING`,
+    `STATUS_DRAFT_GENERATED`, `STATUS_FAILED`, `STATUS_REVIEWED`, `STATUS_APPLIED`).
+  - Spreadsheet column names (`COL_STATUS`, `COL_COMPANY`, `COL_ROLE`, `COL_JOB_ID`,
+    `COL_LINK`, `COL_DESCRIPTION`, `COL_JOB_FULL_DESC`, `COL_RESUME_TYPE`, and the
+    four `will_ai_generate_*` columns).
+  - Flag values (`FLAG_YES`, `FLAG_NO`) and `RESUME_TYPE_DEFAULT`.
+  - Processing thresholds: `JOB_FULL_DESC_MIN_WORDS`, `JD_CHAR_LIMIT_COVER_LETTER`,
+    `JD_CHAR_LIMIT_EMAIL`.
+- **`requirements-dev.txt`** — development dependencies: `ruff`, `mypy`.
+- **`pyproject.toml`** — ruff and mypy configuration (line length 120, rules E/F/W/I/B/UP,
+  per-file ignores for intentional patterns).
+- **`.github/workflows/ci.yml`** — CI pipeline that runs on every push and PR to main:
+  installs dev dependencies, runs `ruff check`, then runs the full unit test suite.
+
+### Changed
+
+- `services/config.py` — status fields now reference `utils.constants` instead of bare strings.
+- `services/sheets.py` — all column name and flag literals replaced with `COL_*` /
+  `FLAG_*` / `RESUME_TYPE_DEFAULT` constants.
+- `main.py` — `4_000`, `3_000`, and `20` magic numbers replaced with
+  `JD_CHAR_LIMIT_COVER_LETTER`, `JD_CHAR_LIMIT_EMAIL`, `JOB_FULL_DESC_MIN_WORDS`.
+- Codebase-wide import ordering, unused import removal, and minor style fixes applied
+  by `ruff --fix` (isort order, one unused mock import removed from tests).
+
+---
+
+## [1.12.0] — 2026-05-16
+
+### Changed
+
+- **`{resume_profile}` moved from user prompt to system prompt** for cover letter and
+  recruiter email generation.  The system message now embeds the candidate profile,
+  so OpenAI's automatic prompt caching covers it — the ~600-token profile is cached
+  after the first API call and re-used at 50 % cost for every subsequent job in the
+  same run.  With 10 jobs × 2 calls this saves roughly 6 000 cached tokens per run,
+  regardless of whether default or custom `PROMPT_*` prompts are used.
+- `main.py` — cover letter and recruiter email calls now format `resume_profile`
+  into the system prompt; user prompt receives only job-specific variables
+  (`{company}`, `{role}`, `{job_description}`).
+- `services/prompts.py` — `_COVER_LETTER_SYSTEM_DEFAULT` and
+  `_RECRUITER_EMAIL_SYSTEM_DEFAULT` gain a `CANDIDATE PROFILE: {resume_profile}`
+  section at the bottom; corresponding `_USER` defaults no longer contain
+  `{resume_profile}`.
+- Placeholder contract updated across `example.env`, `README.md`, and `docs/app.js`:
+  `_SYSTEM` templates require `{resume_profile}`; `_USER` templates require
+  `{company}`, `{role}`, `{job_description}` only.
+
+### Notes
+
+- Custom `PROMPT_COVER_LETTER_SYSTEM` / `PROMPT_RECRUITER_EMAIL_SYSTEM` variables
+  **must now include `{resume_profile}`** — missing it raises `KeyError` at generation
+  time.  Update any existing custom system prompts before upgrading.
+- Custom `PROMPT_*_USER` variables should **remove** `{resume_profile}` if present —
+  it is no longer injected at the user-message level.
+
+---
+
 ## [1.11.0] — 2026-05-16
 
 ### Added
@@ -374,6 +436,10 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artifact upload of generated documents (30-day retention in Actions UI).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
+[1.13.0]: https://github.com/FahimFBA/applyforge/compare/v1.12.0...v1.13.0
+[1.12.0]: https://github.com/FahimFBA/applyforge/compare/v1.11.0...v1.12.0
+[1.11.0]: https://github.com/FahimFBA/applyforge/compare/v1.9.0...v1.11.0
+[1.10.0]: https://github.com/FahimFBA/applyforge/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/FahimFBA/applyforge/compare/v1.8.2...v1.9.0
 [1.8.2]: https://github.com/FahimFBA/applyforge/compare/v1.8.0...v1.8.2
 [1.8.0]: https://github.com/FahimFBA/applyforge/compare/v1.7.0...v1.8.0

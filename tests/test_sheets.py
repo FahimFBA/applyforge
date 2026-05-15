@@ -4,7 +4,6 @@ import types
 import unittest
 from types import SimpleNamespace
 
-
 fake_gspread = types.ModuleType("gspread")
 fake_gspread.Client = object
 fake_gspread.Worksheet = object

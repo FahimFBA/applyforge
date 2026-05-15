@@ -44,7 +44,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError

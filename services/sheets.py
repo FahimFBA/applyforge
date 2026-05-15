@@ -36,6 +36,23 @@ from gspread.exceptions import APIError
 
 from services.config import Config
 from services.logger import setup_logger
+from utils.constants import (
+    COL_COMPANY,
+    COL_COVERLETTER_DOCS,
+    COL_COVERLETTER_MD,
+    COL_DESCRIPTION,
+    COL_EMAIL_DRAFT_DOCS,
+    COL_EMAIL_DRAFT_MD,
+    COL_JOB_FULL_DESC,
+    COL_JOB_ID,
+    COL_LINK,
+    COL_RESUME_TYPE,
+    COL_ROLE,
+    COL_STATUS,
+    FLAG_NO,
+    FLAG_YES,
+    RESUME_TYPE_DEFAULT,
+)
 
 # OAuth scopes required for read + write access to Sheets (and Drive for auth)
 _SCOPES = [
@@ -155,9 +172,9 @@ class SheetsService:
         raw_value = str(record.get(column_name, "")).strip().lower()
         if not raw_value:
             return True
-        if raw_value == "yes":
+        if raw_value == FLAG_YES:
             return True
-        if raw_value == "no":
+        if raw_value == FLAG_NO:
             return False
 
         logger.warning(
@@ -196,25 +213,28 @@ class SheetsService:
             jobs.append(
                 JobRow(
                     row_index=i,
-                    status=str(record.get("status", "")).strip(),
-                    company=str(record.get("company", "")).strip(),
-                    role=str(record.get("role", "")).strip(),
-                    job_id=str(record.get("job_id", "")).strip(),
-                    link=str(record.get("link", "")).strip(),
-                    description=self._normalize_optional_text(record, "description"),
-                    job_full_desc=self._normalize_optional_text(record, "job_full_desc"),
-                    resume_type=str(record.get("resume_type", "default")).strip().lower() or "default",
+                    status=str(record.get(COL_STATUS, "")).strip(),
+                    company=str(record.get(COL_COMPANY, "")).strip(),
+                    role=str(record.get(COL_ROLE, "")).strip(),
+                    job_id=str(record.get(COL_JOB_ID, "")).strip(),
+                    link=str(record.get(COL_LINK, "")).strip(),
+                    description=self._normalize_optional_text(record, COL_DESCRIPTION),
+                    job_full_desc=self._normalize_optional_text(record, COL_JOB_FULL_DESC),
+                    resume_type=(
+                        str(record.get(COL_RESUME_TYPE, "")).strip().lower()
+                        or RESUME_TYPE_DEFAULT
+                    ),
                     will_ai_generate_email_draft_md=self._parse_yes_no_flag(
-                        record, "will_ai_generate_email_draft_md"
+                        record, COL_EMAIL_DRAFT_MD
                     ),
                     will_ai_generate_email_draft_docs=self._parse_yes_no_flag(
-                        record, "will_ai_generate_email_draft_docs"
+                        record, COL_EMAIL_DRAFT_DOCS
                     ),
                     will_ai_generate_coverletter_md=self._parse_yes_no_flag(
-                        record, "will_ai_generate_coverletter_md"
+                        record, COL_COVERLETTER_MD
                     ),
                     will_ai_generate_coverletter_docs=self._parse_yes_no_flag(
-                        record, "will_ai_generate_coverletter_docs"
+                        record, COL_COVERLETTER_DOCS
                     ),
                 )
             )
@@ -246,9 +266,9 @@ class SheetsService:
         # Locate the status column dynamically so column order doesn't matter
         header = self._sheet.row_values(1)
         try:
-            status_col = header.index("status") + 1  # gspread uses 1-based column indices
+            status_col = header.index(COL_STATUS) + 1  # gspread uses 1-based column indices
         except ValueError:
-            logger.error("Column 'status' not found in sheet header row — cannot update")
+            logger.error(f"Column '{COL_STATUS}' not found in sheet header row — cannot update")
             return
 
         retries = self.config.google_retries
