@@ -22,14 +22,11 @@ Usage
     text = client.generate(system_prompt="You are ...", user_prompt="Write ...")
 """
 from __future__ import annotations
-
-import time
-from typing import Optional
-
 from openai import OpenAI, APIConnectionError, APIError, RateLimitError
-
 from services.config import Config
 from services.logger import setup_logger
+from typing import Optional
+import time
 
 logger = setup_logger(__name__)
 
@@ -49,7 +46,7 @@ class OpenAIClient:
         Parameters
         ----------
         config:
-            Project config — reads openai_api_key, openai_model, openai_temperature,
+            Project config - reads openai_api_key, openai_model, openai_temperature,
             and openai_retries from here.
         """
         self.config = config
@@ -57,13 +54,8 @@ class OpenAIClient:
         # pass it explicitly so the source is always obvious.
         self._client = OpenAI(api_key=config.openai_api_key)
 
-    def generate(
-        self,
-        system_prompt: str,
-        user_prompt: str,
-        temperature: Optional[float] = None,
-        max_tokens: int = 2000,
-    ) -> str:
+    def generate(self, system_prompt: str, user_prompt: str, temperature: Optional[float] = None,
+                 max_tokens: int = 2000) -> str:
         """
         Send a chat-completion request and return the assistant's reply.
 
@@ -114,7 +106,7 @@ class OpenAIClient:
                 # Log token usage to help monitor cost
                 if response.usage:
                     logger.debug(
-                        f"Tokens used — prompt: {response.usage.prompt_tokens}, "
+                        f"Tokens used - prompt: {response.usage.prompt_tokens}, "
                         f"completion: {response.usage.completion_tokens}, "
                         f"total: {response.usage.total_tokens}"
                     )
