@@ -22,13 +22,13 @@ const tutorials = [
   {
     title: "3. Prepare spreadsheet and resumes",
     tags: ["Sheet Schema", "PDF Intake", "Resume Types"],
-    summary: "Make input sheet match expected columns and turn PDFs into compact text profiles.",
+    summary: "Make input sheet match expected columns and supply compact text profiles — from a PDF or written by hand.",
     steps: [
       "Create spreadsheet headers: `status`, `company`, `role`, `job_id`, `link`, `description`, `job_full_desc`, `resume_type`, `will_ai_generate_email_draft_md`, `will_ai_generate_email_draft_docs`, `will_ai_generate_coverletter_md`, `will_ai_generate_coverletter_docs`.",
-      "Place PDFs inside `raw_resumes/` with filenames matching `resume_type` keys.",
       "If `job_full_desc` has 20+ words, automation uses it directly and skips scraping job link.",
       "Use `yes` or `no` in AI output columns. Leave blank to default to `yes`.",
-      "Run `python scripts/process_resume.py`, then paste each profile's text into a GitHub Variable: `RESUME_DEFAULT`, `RESUME_BACKEND`, etc."
+      "Resume profiles — two options: (A) place PDFs in `raw_resumes/` and run `python scripts/process_resume.py` to auto-generate compact `.txt` profiles; or (B) skip the script and write a compact plain-text summary of your resume yourself, then paste it directly into the GitHub Variable.",
+      "Paste each profile's text into a GitHub Variable: `RESUME_DEFAULT`, `RESUME_BACKEND`, etc. The runtime only ever sees this text — it does not matter whether it came from a PDF or was written manually."
     ]
   },
   {
@@ -162,6 +162,10 @@ const directories = [
   {
     name: "services/",
     detail: "Config, logging, Sheets, Drive, scraping, OpenAI, doc generation."
+  },
+  {
+    name: "services/prompts.py",
+    detail: "All AI prompt templates. Edit constants here to change cover letter tone, recruiter email style, or resume optimizer behavior — no other file needs changing."
   },
   {
     name: "scripts/",
