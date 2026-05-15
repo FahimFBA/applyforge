@@ -40,6 +40,18 @@
 #   Add more as RESUME_<TYPE> for each resume_type value used in the spreadsheet.
 #   Workflow exports every repository variable whose name starts with RESUME_.
 #   Generate content with: python scripts/process_resume.py
+#
+# Custom Prompt Overrides (Settings → Secrets and variables → Actions → Variables):
+#   PROMPT_RESUME_OPTIMIZER_SYSTEM  — override the resume optimizer system prompt
+#   PROMPT_RESUME_OPTIMIZER_USER    — override the resume optimizer user prompt
+#   PROMPT_COVER_LETTER_SYSTEM      — override the cover letter system prompt
+#   PROMPT_COVER_LETTER_USER        — override the cover letter user prompt
+#   PROMPT_RECRUITER_EMAIL_SYSTEM   — override the recruiter email system prompt
+#   PROMPT_RECRUITER_EMAIL_USER     — override the recruiter email user prompt
+#   If absent or empty, the built-in default prompt is used.
+#   User prompts must still contain the required {placeholders} (e.g. {resume_profile},
+#   {company}, {role}, {job_description} for cover letter / recruiter email;
+#   {resume_text} for the resume optimizer).
 # ============================================================================
 
 name: ApplyForge Automation
@@ -98,14 +110,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # ---- 4. Export all RESUME_* repository variables ----
+      # ---- 4. Export all RESUME_* and PROMPT_* repository variables ----
       # GitHub Actions repository Variables are not process env vars by default.
       # Export every RESUME_* key so arbitrary resume types work without YAML edits.
-      - name: Export resume variables
+      # Export every PROMPT_* key so users can override built-in prompts via Variables.
+      - name: Export resume and prompt variables
         env:
           REPO_VARS_JSON: ${{ toJson(vars) }}
         run: |
-          python -c "import json, os, pathlib; repo_vars = json.loads(os.environ['REPO_VARS_JSON']); env_path = pathlib.Path(os.environ['GITHUB_ENV']); lines = [f'{key}<<EOF\n{value}\nEOF\n' for key, value in repo_vars.items() if key.startswith('RESUME_') and value]; env_path.open('a', encoding='utf-8').writelines(lines)"
+          python -c "import json, os, pathlib; repo_vars = json.loads(os.environ['REPO_VARS_JSON']); env_path = pathlib.Path(os.environ['GITHUB_ENV']); lines = [f'{key}<<EOF\n{value}\nEOF\n' for key, value in repo_vars.items() if (key.startswith('RESUME_') or key.startswith('PROMPT_')) and value]; env_path.open('a', encoding='utf-8').writelines(lines)"
 
       # ---- 4. Run the automation ----
       # Secrets are passed as environment variables — never written to disk.

@@ -12,6 +12,24 @@ Design principles
   not generic AI boilerplate.
 * Token efficiency: prompts are concise and instruct the model to be concise.
 
+Custom prompt overrides
+-----------------------
+Any prompt can be overridden via a GitHub Actions Repository Variable
+without touching code.  Set the corresponding ``PROMPT_*`` variable and
+the workflow will use it instead of the default below.
+
+Variable names (Settings → Secrets and variables → Actions → Variables):
+    PROMPT_RESUME_OPTIMIZER_SYSTEM
+    PROMPT_RESUME_OPTIMIZER_USER
+    PROMPT_COVER_LETTER_SYSTEM
+    PROMPT_COVER_LETTER_USER
+    PROMPT_RECRUITER_EMAIL_SYSTEM
+    PROMPT_RECRUITER_EMAIL_USER
+
+If a variable is absent or empty, the default prompt below is used.
+User-template variables (``{resume_profile}``, ``{company}``, etc.) must
+still be present in any custom user prompt.
+
 Prompt inventory
 ----------------
 RESUME_OPTIMIZER_SYSTEM / _USER
@@ -26,12 +44,14 @@ RECRUITER_EMAIL_SYSTEM / _USER
 """
 from __future__ import annotations
 
+import os
+
 # ======================================================================== #
 # Resume optimizer prompts                                                   #
 # Used by: scripts/process_resume.py                                         #
 # ======================================================================== #
 
-RESUME_OPTIMIZER_SYSTEM: str = """You are an expert technical resume optimizer and ATS specialist.
+_RESUME_OPTIMIZER_SYSTEM_DEFAULT: str = """You are an expert technical resume optimizer and ATS specialist.
 Your task: convert a raw resume into a compact, structured profile optimized for AI prompting.
 Rules:
 - Be concise. No filler words. No redundancy.
@@ -40,7 +60,7 @@ Rules:
 - Output must be plain text — no markdown headers, no bullet symbols beyond hyphens.
 - Total output must be under 450 words."""
 
-RESUME_OPTIMIZER_USER: str = """Extract and compress this resume into a structured profile.
+_RESUME_OPTIMIZER_USER_DEFAULT: str = """Extract and compress this resume into a structured profile.
 
 Use exactly these section labels (omit any section with no relevant content):
 
@@ -74,13 +94,16 @@ Constraints:
 Resume text:
 {resume_text}"""
 
+RESUME_OPTIMIZER_SYSTEM: str = os.environ.get("PROMPT_RESUME_OPTIMIZER_SYSTEM") or _RESUME_OPTIMIZER_SYSTEM_DEFAULT
+RESUME_OPTIMIZER_USER: str = os.environ.get("PROMPT_RESUME_OPTIMIZER_USER") or _RESUME_OPTIMIZER_USER_DEFAULT
+
 
 # ======================================================================== #
 # Cover letter prompts                                                        #
 # Used by: main.py → process_job()                                           #
 # ======================================================================== #
 
-COVER_LETTER_SYSTEM: str = """You are a senior career strategist ghostwriting cover letters for technical professionals.
+_COVER_LETTER_SYSTEM_DEFAULT: str = """You are a senior career strategist ghostwriting cover letters for technical professionals.
 
 Your cover letters land interviews because they do three things most fail at:
 1. They are specific to THIS role at THIS company — not templated.
@@ -95,7 +118,7 @@ Hard rules:
 - Write in first person, professional but warm — like a senior engineer speaking directly to a hiring manager
 - Under 350 words. Plain text, no markdown, no section headers."""
 
-COVER_LETTER_USER: str = """Write a cover letter for this application.
+_COVER_LETTER_USER_DEFAULT: str = """Write a cover letter for this application.
 
 CANDIDATE PROFILE:
 {resume_profile}
@@ -119,13 +142,16 @@ Step 2 — Write the cover letter using this flow:
 
 Output: plain text only, under 350 words, no headers or labels."""
 
+COVER_LETTER_SYSTEM: str = os.environ.get("PROMPT_COVER_LETTER_SYSTEM") or _COVER_LETTER_SYSTEM_DEFAULT
+COVER_LETTER_USER: str = os.environ.get("PROMPT_COVER_LETTER_USER") or _COVER_LETTER_USER_DEFAULT
+
 
 # ======================================================================== #
 # Recruiter email prompts                                                     #
 # Used by: main.py → process_job()                                           #
 # ======================================================================== #
 
-RECRUITER_EMAIL_SYSTEM: str = """You write recruiter outreach emails that get responses.
+_RECRUITER_EMAIL_SYSTEM_DEFAULT: str = """You write recruiter outreach emails that get responses.
 
 What works:
 - First sentence delivers immediate value — who the candidate is and the single most relevant thing they bring to this role
@@ -141,7 +167,7 @@ What kills response rates:
 
 Under 180 words for the body (excluding subject line). Plain text, no markdown."""
 
-RECRUITER_EMAIL_USER: str = """Write a recruiter outreach email for this application.
+_RECRUITER_EMAIL_USER_DEFAULT: str = """Write a recruiter outreach email for this application.
 
 CANDIDATE PROFILE:
 {resume_profile}
@@ -170,3 +196,6 @@ Subject: [Under 8 words. Role-specific, not generic. No exclamation marks.]
 [Closing — 1 sentence: clear ask. End with placeholder: "[Phone] | [Email]"]
 
 Constraints: body under 180 words, flowing sentences only, plain text, no markdown"""
+
+RECRUITER_EMAIL_SYSTEM: str = os.environ.get("PROMPT_RECRUITER_EMAIL_SYSTEM") or _RECRUITER_EMAIL_SYSTEM_DEFAULT
+RECRUITER_EMAIL_USER: str = os.environ.get("PROMPT_RECRUITER_EMAIL_USER") or _RECRUITER_EMAIL_USER_DEFAULT

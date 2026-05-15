@@ -7,6 +7,41 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.11.0] — 2026-05-16
+
+### Added
+
+- **Custom prompt overrides via GitHub Actions Repository Variables.**
+  Any of the six built-in AI prompts can now be replaced without touching code.
+  Set a `PROMPT_*` Repository Variable and the workflow uses it instead of the
+  default; delete or leave it empty to revert to the default.
+
+  | Variable | Overrides |
+  |----------|-----------|
+  | `PROMPT_RESUME_OPTIMIZER_SYSTEM` | Resume optimizer system prompt |
+  | `PROMPT_RESUME_OPTIMIZER_USER` | Resume optimizer user prompt |
+  | `PROMPT_COVER_LETTER_SYSTEM` | Cover letter system prompt |
+  | `PROMPT_COVER_LETTER_USER` | Cover letter user prompt |
+  | `PROMPT_RECRUITER_EMAIL_SYSTEM` | Recruiter email system prompt |
+  | `PROMPT_RECRUITER_EMAIL_USER` | Recruiter email user prompt |
+
+- `services/prompts.py` — each constant now reads its `PROMPT_*` env var at
+  module load time and falls back to the hardcoded default when absent or empty.
+  Public constant names (`COVER_LETTER_SYSTEM`, etc.) are unchanged — no caller
+  changes needed.
+- `.github/workflows/automation.yml` — export step now exports `PROMPT_*`
+  variables alongside `RESUME_*` using the same multiline heredoc mechanism.
+
+### Notes
+
+- User-facing prompt templates (`_USER` variants) must still contain the
+  required `{placeholder}` variables: `{resume_profile}`, `{company}`, `{role}`,
+  `{job_description}` for cover letter / recruiter email; `{resume_text}` for
+  resume optimizer. Missing placeholders raise a `KeyError` at generation time.
+- Prompts are Repository **Variables** (not Secrets) — they are not sensitive.
+
+---
+
 ## [1.10.0] — 2026-05-16
 
 ### Added
