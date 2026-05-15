@@ -29,14 +29,16 @@ Actions Variables — no core code changes required.
 7. [Spreadsheet Setup](#spreadsheet-setup)
 8. [Resume Preprocessing Pipeline](#resume-preprocessing-pipeline)
 9. [Local Development Setup](#local-development-setup)
-10. [Testing](#testing)
-11. [GitHub Actions Setup](#github-actions-setup)
-12. [Configuration Reference](#configuration-reference)
-13. [Cron Schedule Customization](#cron-schedule-customization)
-14. [OpenAI Cost Optimization](#openai-cost-optimization)
-15. [Generated Output Structure](#generated-output-structure)
-16. [Troubleshooting](#troubleshooting)
-17. [Changelog](CHANGELOG.md)
+10. [Running with Docker](#running-with-docker)
+11. [Testing](#testing)
+12. [GitHub Actions Setup](#github-actions-setup)
+13. [Configuration Reference](#configuration-reference)
+14. [Cron Schedule Customization](#cron-schedule-customization)
+15. [OpenAI Cost Optimization](#openai-cost-optimization)
+16. [Customizing Prompts](#customizing-prompts)
+17. [Generated Output Structure](#generated-output-structure)
+18. [Troubleshooting](#troubleshooting)
+19. [Changelog](CHANGELOG.md)
 
 ---
 
@@ -158,6 +160,9 @@ applyforge/
 ├── main.py                         ← Entry point for the automation
 ├── requirements.txt
 ├── example.env                     ← Environment variable reference
+├── Dockerfile                      ← Docker image definition
+├── docker-compose.yml              ← Compose config for local Docker runs
+├── .dockerignore                   ← Files excluded from Docker build context
 ├── .gitignore
 └── README.md
 ```
@@ -335,7 +340,26 @@ token-efficient text profiles used at generation time.
 
 **Savings: ~55% per run.**
 
+> **No PDF? No problem.**
+> You do not need a PDF resume to use ApplyForge. There are two ways to supply
+> your resume profile — pick whichever fits your workflow:
+>
+> **Option A — Convert a PDF automatically (recommended):** Drop your PDF in
+> `raw_resumes/` and run `python scripts/process_resume.py`. The script
+> extracts the text, compresses it via OpenAI, and writes a `.txt` profile for
+> you. Paste the result into a GitHub Variable.
+>
+> **Option B — Write the profile by hand:** Skip the script entirely. Write a
+> compact plain-text summary of your experience yourself — or copy-paste your
+> resume text and trim it down — then paste it directly into the
+> `RESUME_DEFAULT` (or `RESUME_<TYPE>`) GitHub Variable. The runtime only ever
+> sees this text; it does not care whether it came from a PDF or was typed
+> manually. The format produced by `process_resume.py` is a useful guide, but
+> any well-structured compact text works.
+
 ### Step 1 — Add your PDF resumes
+
+> **Skip this step if using Option B (manual text).**
 
 Place your PDF resumes in the `raw_resumes/` directory.  Name each file to
 match the `resume_type` value you use in the spreadsheet:
@@ -349,6 +373,8 @@ raw_resumes/
 
 ### Step 2 — Run the preprocessing script
 
+> **Skip this step if using Option B (manual text).**
+
 ```bash
 python scripts/process_resume.py
 ```
@@ -361,6 +387,11 @@ calls OpenAI to generate a structured compressed profile, and saves it to
 
 Open the generated `.txt` files and verify they contain all expected sections.
 Edit manually if any section is missing or inaccurate.
+
+If you wrote your profile by hand (Option B), review it the same way — open a
+text editor, paste your content, and make sure it covers the sections the
+prompts expect: professional summary, key skills, experience highlights,
+notable projects, domain expertise, education, and certifications.
 
 ### Step 4 — Set profiles as GitHub Variables
 
@@ -476,6 +507,62 @@ This project uses Python's built-in `unittest` runner. The current suite covers:
 - `main.py` per-job orchestration, `job_full_desc` handling, and output-flag behavior
 - `services/resume_optimizer.py` text cleaning, missing-file handling, and fallback profile loading
 - `services/sheets.py` row parsing, `yes`/`no` flag normalization, and blank-to-yes defaults
+
+---
+
+## Running with Docker
+
+Docker lets you run ApplyForge without installing Python or any dependencies locally.
+All you need is [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose on Linux).
+
+### Prerequisites
+
+- Docker Desktop (Mac/Windows) or Docker Engine + Compose plugin (Linux)
+- A fully configured `.env` file (copy `example.env` and fill in your values — same as local setup)
+
+### Step 1 — Build the image
+
+```bash
+docker build -t applyforge .
+```
+
+### Step 2 — Run the automation
+
+**With Docker Compose (recommended):**
+
+```bash
+docker compose up
+```
+
+Compose mounts `output/`, `logs/`, `resumes/`, and `raw_resumes/` from your local
+directories so generated files land on your machine, not inside the container.
+
+**With plain Docker:**
+
+```bash
+docker run --rm \
+  --env-file .env \
+  -v "$(pwd)/output:/app/output" \
+  -v "$(pwd)/logs:/app/logs" \
+  -v "$(pwd)/resumes:/app/resumes" \
+  applyforge
+```
+
+### Step 3 — Preprocess resumes inside Docker (optional)
+
+If you want to run `process_resume.py` in the container instead of locally:
+
+```bash
+# Place PDFs in raw_resumes/ first, then:
+docker compose run --rm applyforge python scripts/process_resume.py
+```
+
+### Notes
+
+- The container runs `python main.py` and exits — it is not a long-running service.
+- `output/` and `logs/` are volume-mounted, so files persist after the container stops.
+- Pass `RESUME_DEFAULT` and any `RESUME_<TYPE>` values in your `.env` file the same way as local development.
+- GitHub Actions uses its own runner, not Docker — the `Dockerfile` is for local or self-hosted use only.
 
 ---
 
@@ -672,6 +759,36 @@ At `gpt-4o-mini` pricing, processing 10 jobs costs roughly **$0.002** per run.
 - Job descriptions are truncated to 4 000 chars before being sent to the API.
 - `OPENAI_MODEL=gpt-4o-mini` is the default — upgrade to `gpt-4o` only if quality
   is insufficient.
+
+---
+
+## Customizing Prompts
+
+All AI prompt templates live in **`services/prompts.py`**.  Edit the
+constants there to change how ApplyForge instructs OpenAI — no other file
+needs to change.
+
+| Constant pair | Used by | Purpose |
+|---------------|---------|---------|
+| `RESUME_OPTIMIZER_SYSTEM` / `_USER` | `scripts/process_resume.py` | Compresses raw PDF text into a compact profile. Run once per resume. |
+| `COVER_LETTER_SYSTEM` / `_USER` | `main.py` → `process_job()` | Generates the ATS-optimized cover letter per job row. |
+| `RECRUITER_EMAIL_SYSTEM` / `_USER` | `main.py` → `process_job()` | Generates the short recruiter outreach email per job row. |
+
+### How to update a prompt
+
+1. Open `services/prompts.py`.
+2. Find the constant you want to change (e.g. `COVER_LETTER_SYSTEM`).
+3. Edit the string directly.  The `{variable}` placeholders (e.g.
+   `{resume_profile}`, `{company}`, `{role}`, `{job_description}`) are filled
+   in at runtime — do not remove them.
+4. Save the file and run `python main.py` locally to verify output quality
+   before pushing.
+
+> **Tip:** The `_SYSTEM` constant sets the model's persona and hard rules.
+> The `_USER` constant provides the per-job data and output format
+> instructions.  You typically only need to edit the `_USER` prompt to change
+> output structure or tone; edit `_SYSTEM` to change global behavior (e.g.
+> word limit, forbidden phrases).
 
 ---
 

@@ -7,6 +7,34 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.10.0] — 2026-05-16
+
+### Added
+
+- **Docker support.** `Dockerfile`, `docker-compose.yml`, and `.dockerignore`
+  added so the automation can run without a local Python install.
+  `docker compose up` mounts `output/`, `logs/`, `resumes/`, and
+  `raw_resumes/` as volumes so generated files persist on the host.
+- **Resume manual text option documented.** README and docs tutorial now
+  explicitly describe both resume intake paths: (A) PDF → `process_resume.py`
+  → GitHub Variable, and (B) write a compact plain-text profile by hand and
+  paste directly into the GitHub Variable — no PDF or script required.
+- **Prompt customization guide.** README and docs now explain that all AI
+  prompt templates live in `services/prompts.py` as module-level constants,
+  list every constant pair and its purpose, and show how to edit them without
+  touching business logic.
+- **OpenAI client cleanup.** Removed dead code from `services/openai_client.py`.
+
+### Changed
+
+- `README.md` — Project Structure section updated with new Docker files;
+  Running with Docker section added (item 10); TOC renumbered accordingly.
+- `docs/app.js` — Command Deck now includes Docker build, Compose run, and
+  in-container resume processing commands; Directories reference lists
+  `services/prompts.py` as the single file to edit for prompt changes.
+
+---
+
 ## [1.9.0] — 2026-05-15
 
 ### Changed
