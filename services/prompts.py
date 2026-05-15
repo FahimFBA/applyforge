@@ -10,7 +10,10 @@ Design principles
 * Templates use Python's ``str.format()`` placeholders (``{variable}``).
 * Prompts are tuned to produce human-sounding, ATS-friendly output —
   not generic AI boilerplate.
-* Token efficiency: prompts are concise and instruct the model to be concise.
+* Token efficiency: resume_profile lives in the system prompt so OpenAI's
+  automatic prompt caching covers it — the same ~600-token profile is cached
+  after the first call and re-used at 50 % cost for every subsequent job in
+  the same run, regardless of whether default or custom prompts are used.
 
 Custom prompt overrides
 -----------------------
@@ -27,8 +30,18 @@ Variable names (Settings → Secrets and variables → Actions → Variables):
     PROMPT_RECRUITER_EMAIL_USER
 
 If a variable is absent or empty, the default prompt below is used.
-User-template variables (``{resume_profile}``, ``{company}``, etc.) must
-still be present in any custom user prompt.
+
+Placeholder contract
+--------------------
+``_SYSTEM`` templates:
+    COVER_LETTER_SYSTEM / RECRUITER_EMAIL_SYSTEM  →  must contain ``{resume_profile}``
+    RESUME_OPTIMIZER_SYSTEM                        →  no placeholders
+
+``_USER`` templates:
+    COVER_LETTER_USER / RECRUITER_EMAIL_USER  →  ``{company}``, ``{role}``, ``{job_description}``
+    RESUME_OPTIMIZER_USER                     →  ``{resume_text}``
+
+Missing placeholders raise a ``KeyError`` at generation time.
 
 Prompt inventory
 ----------------
@@ -116,12 +129,12 @@ Hard rules:
 - Never use: passionate, team player, go-getter, results-driven, detail-oriented, dynamic, synergy, leverage
 - Do not summarize the entire resume — pick only what is most relevant to this specific role
 - Write in first person, professional but warm — like a senior engineer speaking directly to a hiring manager
-- Under 350 words. Plain text, no markdown, no section headers."""
-
-_COVER_LETTER_USER_DEFAULT: str = """Write a cover letter for this application.
+- Under 350 words. Plain text, no markdown, no section headers.
 
 CANDIDATE PROFILE:
-{resume_profile}
+{resume_profile}"""
+
+_COVER_LETTER_USER_DEFAULT: str = """Write a cover letter for this application.
 
 TARGET ROLE:
 Company: {company}
@@ -165,12 +178,12 @@ What kills response rates:
 - Restating the entire resume or listing every skill
 - Overselling — one or two specifics are more convincing than five vague claims
 
-Under 180 words for the body (excluding subject line). Plain text, no markdown."""
-
-_RECRUITER_EMAIL_USER_DEFAULT: str = """Write a recruiter outreach email for this application.
+Under 180 words for the body (excluding subject line). Plain text, no markdown.
 
 CANDIDATE PROFILE:
-{resume_profile}
+{resume_profile}"""
+
+_RECRUITER_EMAIL_USER_DEFAULT: str = """Write a recruiter outreach email for this application.
 
 TARGET ROLE:
 Company: {company}

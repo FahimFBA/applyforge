@@ -49,9 +49,9 @@
 #   PROMPT_RECRUITER_EMAIL_SYSTEM   — override the recruiter email system prompt
 #   PROMPT_RECRUITER_EMAIL_USER     — override the recruiter email user prompt
 #   If absent or empty, the built-in default prompt is used.
-#   User prompts must still contain the required {placeholders} (e.g. {resume_profile},
-#   {company}, {role}, {job_description} for cover letter / recruiter email;
-#   {resume_text} for the resume optimizer).
+#   System prompts (_SYSTEM) must contain {resume_profile} for cover letter / recruiter email.
+#   User prompts (_USER) must contain {company}, {role}, {job_description} for cover letter /
+#   recruiter email; {resume_text} for the resume optimizer.
 # ============================================================================
 
 name: ApplyForge Automation

@@ -128,15 +128,15 @@ const configItems = [
   },
   {
     name: "PROMPT_COVER_LETTER_SYSTEM / PROMPT_COVER_LETTER_USER",
-    detail: "Optional. Override built-in cover letter prompts. Set as Repository Variables. Leave absent or empty to use the default."
+    detail: "Optional. Override built-in cover letter prompts. SYSTEM must contain {resume_profile}; USER must contain {company}, {role}, {job_description}. Set as Repository Variables; leave absent or empty to use the default."
   },
   {
     name: "PROMPT_RECRUITER_EMAIL_SYSTEM / PROMPT_RECRUITER_EMAIL_USER",
-    detail: "Optional. Override built-in recruiter email prompts. Set as Repository Variables. Leave absent or empty to use the default."
+    detail: "Optional. Override built-in recruiter email prompts. SYSTEM must contain {resume_profile}; USER must contain {company}, {role}, {job_description}. Set as Repository Variables; leave absent or empty to use the default."
   },
   {
     name: "PROMPT_RESUME_OPTIMIZER_SYSTEM / PROMPT_RESUME_OPTIMIZER_USER",
-    detail: "Optional. Override built-in resume optimizer prompts. Set as Repository Variables. Leave absent or empty to use the default."
+    detail: "Optional. Override built-in resume optimizer prompts. USER must contain {resume_text}. Set as Repository Variables; leave absent or empty to use the default."
   }
 ];
 

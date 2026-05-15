@@ -51,14 +51,18 @@ from services.prompts import (
 from services.resume_optimizer import load_resume_profile
 from services.scraper import ScraperService
 from services.sheets import JobRow, SheetsService
-
+from utils.constants import (
+    JD_CHAR_LIMIT_COVER_LETTER,
+    JD_CHAR_LIMIT_EMAIL,
+    JOB_FULL_DESC_MIN_WORDS,
+)
 
 # ======================================================================== #
 # Per-job processing                                                         #
 # ======================================================================== #
 
 
-def _has_minimum_word_count(text: str | None, minimum_words: int = 20) -> bool:
+def _has_minimum_word_count(text: str | None, minimum_words: int = JOB_FULL_DESC_MIN_WORDS) -> bool:
     """Return ``True`` when text contains at least ``minimum_words`` words."""
     if not text:
         return False
@@ -145,13 +149,12 @@ def process_job(
     if should_generate_cover_letter:
         logger.info("Generating cover letter...")
         cover_letter = openai.generate(
-            system_prompt=COVER_LETTER_SYSTEM,
+            system_prompt=COVER_LETTER_SYSTEM.format(resume_profile=resume_profile),
             user_prompt=COVER_LETTER_USER.format(
-                resume_profile=resume_profile,
                 company=job.company,
                 role=job.role,
                 # Cap JD to 4 000 chars to stay within a sensible context budget
-                job_description=job_description[:4_000],
+                job_description=job_description[:JD_CHAR_LIMIT_COVER_LETTER],
             ),
             max_tokens=600,
         )
@@ -161,13 +164,12 @@ def process_job(
     if should_generate_email:
         logger.info("Generating recruiter email...")
         recruiter_email = openai.generate(
-            system_prompt=RECRUITER_EMAIL_SYSTEM,
+            system_prompt=RECRUITER_EMAIL_SYSTEM.format(resume_profile=resume_profile),
             user_prompt=RECRUITER_EMAIL_USER.format(
-                resume_profile=resume_profile,
                 company=job.company,
                 role=job.role,
                 # Slightly shorter cap for the email — it needs less JD context
-                job_description=job_description[:3_000],
+                job_description=job_description[:JD_CHAR_LIMIT_EMAIL],
             ),
             max_tokens=400,
         )

@@ -705,18 +705,26 @@ unchanged. No code changes or redeployments are needed.
 
 To revert to the default, delete the variable.
 
-### Required placeholders in user prompts
+### Required placeholders
 
-User-template variables must be preserved in any custom `_USER` prompt:
+Placeholders must be present in any custom prompt that overrides the corresponding template:
 
 | Prompt | Required `{placeholder}` variables |
 |--------|-------------------------------------|
+| `PROMPT_RESUME_OPTIMIZER_SYSTEM` | *(none)* |
 | `PROMPT_RESUME_OPTIMIZER_USER` | `{resume_text}` |
-| `PROMPT_COVER_LETTER_USER` | `{resume_profile}`, `{company}`, `{role}`, `{job_description}` |
-| `PROMPT_RECRUITER_EMAIL_USER` | `{resume_profile}`, `{company}`, `{role}`, `{job_description}` |
+| `PROMPT_COVER_LETTER_SYSTEM` | `{resume_profile}` |
+| `PROMPT_COVER_LETTER_USER` | `{company}`, `{role}`, `{job_description}` |
+| `PROMPT_RECRUITER_EMAIL_SYSTEM` | `{resume_profile}` |
+| `PROMPT_RECRUITER_EMAIL_USER` | `{company}`, `{role}`, `{job_description}` |
+
+`{resume_profile}` lives in the **system** prompt so OpenAI's automatic prompt
+caching covers it — the profile is cached after the first call and re-used at
+50 % cost for every subsequent job in the same run.  This applies equally to
+default and custom prompts as long as the formatted system message is identical
+across calls.
 
 Missing placeholders raise a `KeyError` at generation time.
-System prompts (`_SYSTEM` variants) have no required placeholders.
 
 ### Local development
 
