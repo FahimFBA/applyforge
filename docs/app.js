@@ -50,6 +50,7 @@ const tutorials = [
       "Add required secrets: `OPENAI_API_KEY`, `GOOGLE_SERVICE_ACCOUNT`, and OAuth values.",
       "Add variables: `GOOGLE_SHEET_ID` (spreadsheet ID from URL), `GOOGLE_DRIVE_FOLDER_ID`, `OPENAI_MODEL`, `MAX_JOBS_PER_RUN`, and `RESUME_DEFAULT`.",
       "Add one repository variable per resume type as `RESUME_<TYPE>`. Workflow exports every `RESUME_*` variable automatically.",
+      "Optionally override any built-in AI prompt by adding a `PROMPT_*` repository variable (e.g. `PROMPT_COVER_LETTER_SYSTEM`). Leave absent or empty to use the default. See README for full list.",
       "Trigger manual run from Actions UI before relying on cron."
     ]
   },
@@ -124,6 +125,18 @@ const configItems = [
   {
     name: "RESUME_BACKEND / RESUME_AI",
     detail: "Optional examples. Add RESUME_<TYPE> for each resume_type in your sheet. Workflow exports every `RESUME_*` repository variable."
+  },
+  {
+    name: "PROMPT_COVER_LETTER_SYSTEM / PROMPT_COVER_LETTER_USER",
+    detail: "Optional. Override built-in cover letter prompts. Set as Repository Variables. Leave absent or empty to use the default."
+  },
+  {
+    name: "PROMPT_RECRUITER_EMAIL_SYSTEM / PROMPT_RECRUITER_EMAIL_USER",
+    detail: "Optional. Override built-in recruiter email prompts. Set as Repository Variables. Leave absent or empty to use the default."
+  },
+  {
+    name: "PROMPT_RESUME_OPTIMIZER_SYSTEM / PROMPT_RESUME_OPTIMIZER_USER",
+    detail: "Optional. Override built-in resume optimizer prompts. Set as Repository Variables. Leave absent or empty to use the default."
   }
 ];
 

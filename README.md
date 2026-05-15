@@ -32,10 +32,10 @@ Actions Variables — no core code changes required.
 10. [Running with Docker](#running-with-docker)
 11. [Testing](#testing)
 12. [GitHub Actions Setup](#github-actions-setup)
-13. [Configuration Reference](#configuration-reference)
-14. [Cron Schedule Customization](#cron-schedule-customization)
-15. [OpenAI Cost Optimization](#openai-cost-optimization)
-16. [Customizing Prompts](#customizing-prompts)
+13. [Custom Prompt Overrides](#custom-prompt-overrides)
+14. [Configuration Reference](#configuration-reference)
+15. [Cron Schedule Customization](#cron-schedule-customization)
+16. [OpenAI Cost Optimization](#openai-cost-optimization)
 17. [Generated Output Structure](#generated-output-structure)
 18. [Troubleshooting](#troubleshooting)
 19. [Changelog](CHANGELOG.md)
@@ -130,7 +130,7 @@ applyforge/
 │   ├── drive.py                    ← Google Drive folder + upload
 │   ├── openai_client.py            ← OpenAI chat-completion with retry
 │   ├── scraper.py                  ← Job-page web scraper
-│   ├── prompts.py                  ← All AI prompt templates
+│   ├── prompts.py                  ← All AI prompt templates (overridable via PROMPT_* vars)
 │   ├── document_generator.py       ← .md and .docx file generation
 │   └── resume_optimizer.py         ← PDF extraction + profile loading
 │
@@ -655,16 +655,76 @@ Go to: **Repository → Settings → Secrets and variables → Actions → Varia
 | `RESUME_DEFAULT` | *(required)* | Default resume profile text (processed by `process_resume.py`) |
 | `RESUME_BACKEND` | *(optional)* | Backend-role resume profile text |
 | `RESUME_AI` | *(optional)* | AI/ML-role resume profile text |
+| `PROMPT_RESUME_OPTIMIZER_SYSTEM` | *(optional)* | Override resume optimizer system prompt |
+| `PROMPT_RESUME_OPTIMIZER_USER` | *(optional)* | Override resume optimizer user prompt |
+| `PROMPT_COVER_LETTER_SYSTEM` | *(optional)* | Override cover letter system prompt |
+| `PROMPT_COVER_LETTER_USER` | *(optional)* | Override cover letter user prompt |
+| `PROMPT_RECRUITER_EMAIL_SYSTEM` | *(optional)* | Override recruiter email system prompt |
+| `PROMPT_RECRUITER_EMAIL_USER` | *(optional)* | Override recruiter email user prompt |
 
 Add a `RESUME_<TYPE>` variable for every `resume_type` key used in your
 spreadsheet. Workflow exports every repository variable whose name starts with
 `RESUME_`, so new types do not require workflow edits. `RESUME_DEFAULT` is the
 fallback when no type-specific variable matches.
 
+`PROMPT_*` variables override built-in prompts at runtime. See
+[Custom Prompt Overrides](#custom-prompt-overrides) for details.
+
 ### Step 4 — Verify the workflow
 
 Go to **Actions → ApplyForge Automation → Run workflow** to trigger a manual
 run and confirm everything works before relying on the daily schedule.
+
+---
+
+## Custom Prompt Overrides
+
+All six AI prompts used by ApplyForge live in `services/prompts.py` as
+module-level constants. Each constant checks its corresponding
+`PROMPT_*` environment variable at startup — if the variable is set and
+non-empty, it replaces the built-in default; otherwise the default is used
+unchanged. No code changes or redeployments are needed.
+
+### Available overrides
+
+| Repository Variable | Prompt it overrides | Used by |
+|---------------------|---------------------|---------|
+| `PROMPT_RESUME_OPTIMIZER_SYSTEM` | System instruction for resume compression | `scripts/process_resume.py` |
+| `PROMPT_RESUME_OPTIMIZER_USER` | User message template for resume compression | `scripts/process_resume.py` |
+| `PROMPT_COVER_LETTER_SYSTEM` | System instruction for cover letter generation | `main.py` |
+| `PROMPT_COVER_LETTER_USER` | User message template for cover letter generation | `main.py` |
+| `PROMPT_RECRUITER_EMAIL_SYSTEM` | System instruction for recruiter email generation | `main.py` |
+| `PROMPT_RECRUITER_EMAIL_USER` | User message template for recruiter email generation | `main.py` |
+
+### How to set a custom prompt
+
+1. Go to **Settings → Secrets and variables → Actions → Variables → New repository variable**.
+2. Name it exactly as shown in the table above (e.g. `PROMPT_COVER_LETTER_SYSTEM`).
+3. Paste your prompt text as the value.
+4. Trigger a new workflow run — the custom prompt is used immediately.
+
+To revert to the default, delete the variable.
+
+### Required placeholders in user prompts
+
+User-template variables must be preserved in any custom `_USER` prompt:
+
+| Prompt | Required `{placeholder}` variables |
+|--------|-------------------------------------|
+| `PROMPT_RESUME_OPTIMIZER_USER` | `{resume_text}` |
+| `PROMPT_COVER_LETTER_USER` | `{resume_profile}`, `{company}`, `{role}`, `{job_description}` |
+| `PROMPT_RECRUITER_EMAIL_USER` | `{resume_profile}`, `{company}`, `{role}`, `{job_description}` |
+
+Missing placeholders raise a `KeyError` at generation time.
+System prompts (`_SYSTEM` variants) have no required placeholders.
+
+### Local development
+
+Set `PROMPT_*` in your `.env` file to test custom prompts locally:
+
+```env
+PROMPT_COVER_LETTER_SYSTEM=You are a terse cover letter writer. Under 150 words. No fluff.
+```
 
 ---
 
@@ -702,6 +762,12 @@ variables.
 | `RESUME_DEFAULT` | str | *(required)* | Default resume profile text |
 | `RESUME_BACKEND` | str | *(optional)* | Backend-role profile text |
 | `RESUME_AI` | str | *(optional)* | AI/ML-role profile text |
+| `PROMPT_RESUME_OPTIMIZER_SYSTEM` | str | *(optional)* | Override resume optimizer system prompt |
+| `PROMPT_RESUME_OPTIMIZER_USER` | str | *(optional)* | Override resume optimizer user prompt |
+| `PROMPT_COVER_LETTER_SYSTEM` | str | *(optional)* | Override cover letter system prompt |
+| `PROMPT_COVER_LETTER_USER` | str | *(optional)* | Override cover letter user prompt |
+| `PROMPT_RECRUITER_EMAIL_SYSTEM` | str | *(optional)* | Override recruiter email system prompt |
+| `PROMPT_RECRUITER_EMAIL_USER` | str | *(optional)* | Override recruiter email user prompt |
 
 ---
 
@@ -759,36 +825,6 @@ At `gpt-4o-mini` pricing, processing 10 jobs costs roughly **$0.002** per run.
 - Job descriptions are truncated to 4 000 chars before being sent to the API.
 - `OPENAI_MODEL=gpt-4o-mini` is the default — upgrade to `gpt-4o` only if quality
   is insufficient.
-
----
-
-## Customizing Prompts
-
-All AI prompt templates live in **`services/prompts.py`**.  Edit the
-constants there to change how ApplyForge instructs OpenAI — no other file
-needs to change.
-
-| Constant pair | Used by | Purpose |
-|---------------|---------|---------|
-| `RESUME_OPTIMIZER_SYSTEM` / `_USER` | `scripts/process_resume.py` | Compresses raw PDF text into a compact profile. Run once per resume. |
-| `COVER_LETTER_SYSTEM` / `_USER` | `main.py` → `process_job()` | Generates the ATS-optimized cover letter per job row. |
-| `RECRUITER_EMAIL_SYSTEM` / `_USER` | `main.py` → `process_job()` | Generates the short recruiter outreach email per job row. |
-
-### How to update a prompt
-
-1. Open `services/prompts.py`.
-2. Find the constant you want to change (e.g. `COVER_LETTER_SYSTEM`).
-3. Edit the string directly.  The `{variable}` placeholders (e.g.
-   `{resume_profile}`, `{company}`, `{role}`, `{job_description}`) are filled
-   in at runtime — do not remove them.
-4. Save the file and run `python main.py` locally to verify output quality
-   before pushing.
-
-> **Tip:** The `_SYSTEM` constant sets the model's persona and hard rules.
-> The `_USER` constant provides the per-job data and output format
-> instructions.  You typically only need to edit the `_USER` prompt to change
-> output structure or tone; edit `_SYSTEM` to change global behavior (e.g.
-> word limit, forbidden phrases).
 
 ---
 
