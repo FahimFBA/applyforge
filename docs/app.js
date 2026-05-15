@@ -238,6 +238,21 @@ const commands = [
     title: "Preview docs locally",
     body: "Open docs site in browser with static serving.",
     command: "python -m http.server 8000 -d docs"
+  },
+  {
+    title: "Build Docker image",
+    body: "Build ApplyForge container image locally.",
+    command: "docker build -t applyforge ."
+  },
+  {
+    title: "Run via Docker Compose",
+    body: "Run automation in Docker with volume-mounted output.",
+    command: "docker compose up"
+  },
+  {
+    title: "Process resumes in Docker",
+    body: "Run resume preprocessor inside the container.",
+    command: "docker compose run --rm applyforge python scripts/process_resume.py"
   }
 ];
 

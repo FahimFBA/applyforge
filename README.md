@@ -29,15 +29,16 @@ Actions Variables — no core code changes required.
 7. [Spreadsheet Setup](#spreadsheet-setup)
 8. [Resume Preprocessing Pipeline](#resume-preprocessing-pipeline)
 9. [Local Development Setup](#local-development-setup)
-10. [Testing](#testing)
-11. [GitHub Actions Setup](#github-actions-setup)
-12. [Configuration Reference](#configuration-reference)
-13. [Cron Schedule Customization](#cron-schedule-customization)
-14. [OpenAI Cost Optimization](#openai-cost-optimization)
-15. [Customizing Prompts](#customizing-prompts)
-16. [Generated Output Structure](#generated-output-structure)
-17. [Troubleshooting](#troubleshooting)
-18. [Changelog](CHANGELOG.md)
+10. [Running with Docker](#running-with-docker)
+11. [Testing](#testing)
+12. [GitHub Actions Setup](#github-actions-setup)
+13. [Configuration Reference](#configuration-reference)
+14. [Cron Schedule Customization](#cron-schedule-customization)
+15. [OpenAI Cost Optimization](#openai-cost-optimization)
+16. [Customizing Prompts](#customizing-prompts)
+17. [Generated Output Structure](#generated-output-structure)
+18. [Troubleshooting](#troubleshooting)
+19. [Changelog](CHANGELOG.md)
 
 ---
 
@@ -159,6 +160,9 @@ applyforge/
 ├── main.py                         ← Entry point for the automation
 ├── requirements.txt
 ├── example.env                     ← Environment variable reference
+├── Dockerfile                      ← Docker image definition
+├── docker-compose.yml              ← Compose config for local Docker runs
+├── .dockerignore                   ← Files excluded from Docker build context
 ├── .gitignore
 └── README.md
 ```
@@ -503,6 +507,62 @@ This project uses Python's built-in `unittest` runner. The current suite covers:
 - `main.py` per-job orchestration, `job_full_desc` handling, and output-flag behavior
 - `services/resume_optimizer.py` text cleaning, missing-file handling, and fallback profile loading
 - `services/sheets.py` row parsing, `yes`/`no` flag normalization, and blank-to-yes defaults
+
+---
+
+## Running with Docker
+
+Docker lets you run ApplyForge without installing Python or any dependencies locally.
+All you need is [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker Engine + Compose on Linux).
+
+### Prerequisites
+
+- Docker Desktop (Mac/Windows) or Docker Engine + Compose plugin (Linux)
+- A fully configured `.env` file (copy `example.env` and fill in your values — same as local setup)
+
+### Step 1 — Build the image
+
+```bash
+docker build -t applyforge .
+```
+
+### Step 2 — Run the automation
+
+**With Docker Compose (recommended):**
+
+```bash
+docker compose up
+```
+
+Compose mounts `output/`, `logs/`, `resumes/`, and `raw_resumes/` from your local
+directories so generated files land on your machine, not inside the container.
+
+**With plain Docker:**
+
+```bash
+docker run --rm \
+  --env-file .env \
+  -v "$(pwd)/output:/app/output" \
+  -v "$(pwd)/logs:/app/logs" \
+  -v "$(pwd)/resumes:/app/resumes" \
+  applyforge
+```
+
+### Step 3 — Preprocess resumes inside Docker (optional)
+
+If you want to run `process_resume.py` in the container instead of locally:
+
+```bash
+# Place PDFs in raw_resumes/ first, then:
+docker compose run --rm applyforge python scripts/process_resume.py
+```
+
+### Notes
+
+- The container runs `python main.py` and exits — it is not a long-running service.
+- `output/` and `logs/` are volume-mounted, so files persist after the container stops.
+- Pass `RESUME_DEFAULT` and any `RESUME_<TYPE>` values in your `.env` file the same way as local development.
+- GitHub Actions uses its own runner, not Docker — the `Dockerfile` is for local or self-hosted use only.
 
 ---
 

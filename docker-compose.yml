@@ -1,0 +1,10 @@
+services:
+  applyforge:
+    build: .
+    env_file: .env
+    volumes:
+      - ./output:/app/output
+      - ./logs:/app/logs
+      - ./resumes:/app/resumes
+      - ./raw_resumes:/app/raw_resumes
+    restart: "no"
