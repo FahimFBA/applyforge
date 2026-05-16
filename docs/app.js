@@ -296,13 +296,13 @@ function renderWhatsNew() {
   const banner = document.getElementById("whats-new-banner");
   if (!banner) return;
   banner.innerHTML = `
-    <span class="whats-new-badge">v1.13.0</span>
+    <span class="whats-new-badge">v1.14.0</span>
     <p class="whats-new-text">
       <strong>What's new:</strong>
-      <code>utils/constants.py</code> — single source of truth for all domain constants ·
-      Ruff linter + mypy configured in <code>pyproject.toml</code> ·
-      CI workflow runs lint + tests on every push and PR ·
-      System-prompt resume caching (v1.12.0) saves ~6 000 tokens per 10-job run
+      Global docs navbar in <code>navbar.js</code> ·
+      Full guide page with search overlay in <code>readme.html</code> ·
+      Mobile topbar overflow fix on docs pages ·
+      README and docs content refreshed for v1.14.0
     </p>
   `;
 }

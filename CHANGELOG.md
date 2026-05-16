@@ -460,6 +460,7 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Artifact upload of generated documents (30-day retention in Actions UI).
 - Per-job failure isolation — one failure does not stop the rest of the run.
 
+[1.14.0]: https://github.com/FahimFBA/applyforge/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/FahimFBA/applyforge/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/FahimFBA/applyforge/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/FahimFBA/applyforge/compare/v1.9.0...v1.11.0
