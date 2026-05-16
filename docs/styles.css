@@ -10,7 +10,9 @@
   --accent-strong: #084c61;
   --accent-soft: #d8efe7;
   --warm: #c4632f;
+  --warm-soft: rgba(196, 99, 47, 0.08);
   --shadow: 0 18px 50px rgba(31, 24, 16, 0.12);
+  --shadow-hover: 0 28px 60px rgba(31, 24, 16, 0.2);
   --radius-xl: 28px;
   --radius-lg: 22px;
   --radius-md: 16px;
@@ -23,10 +25,17 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+:target,
+h1, h2, h3, h4 {
+  scroll-margin-top: 96px;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
   color: var(--ink);
   background:
     radial-gradient(circle at top left, rgba(196, 99, 47, 0.14), transparent 28%),
@@ -40,12 +49,53 @@ a {
   text-decoration: none;
 }
 
+/* ============================================================
+   Scroll reveal system
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-left.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Stagger children that already have reveal classes */
+.stagger > *:nth-child(1)  { transition-delay: 0.05s; }
+.stagger > *:nth-child(2)  { transition-delay: 0.12s; }
+.stagger > *:nth-child(3)  { transition-delay: 0.19s; }
+.stagger > *:nth-child(4)  { transition-delay: 0.26s; }
+.stagger > *:nth-child(5)  { transition-delay: 0.33s; }
+.stagger > *:nth-child(6)  { transition-delay: 0.40s; }
+
+/* ============================================================
+   Layout
+   ============================================================ */
 .page-shell {
   width: min(calc(100% - 32px), var(--max-width));
   margin: 0 auto;
-  padding: 20px 0 64px;
+  padding: 86px 0 64px;
 }
 
+/* ============================================================
+   Topbar
+   ============================================================ */
 .topbar {
   display: flex;
   align-items: center;
@@ -54,11 +104,17 @@ a {
   padding: 18px 22px;
   border: 1px solid var(--line);
   border-radius: 999px;
-  background: rgba(255, 250, 241, 0.72);
-  backdrop-filter: blur(12px);
-  position: sticky;
+  background: rgba(255, 250, 241, 0.88);
+  backdrop-filter: blur(16px);
+  position: fixed;
   top: 14px;
-  z-index: 10;
+  left: 16px;
+  right: 16px;
+  width: auto;
+  max-width: var(--max-width);
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 100;
 }
 
 .brand,
@@ -77,13 +133,91 @@ a {
 }
 
 .topbar-links {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  justify-content: center;
   gap: 18px;
   color: var(--muted);
   font-size: 0.96rem;
+  overflow: hidden;
 }
 
+.topbar-links a {
+  position: relative;
+  padding-bottom: 2px;
+  transition: color 0.2s;
+}
+
+.topbar-links a::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.topbar-links a:hover {
+  color: var(--accent);
+}
+
+.topbar-links a:hover::after {
+  width: 100%;
+}
+
+/* Search trigger button (readme.html only) */
+.topbar-search-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s, border-color 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.topbar-search-btn:hover {
+  color: var(--accent);
+  border-color: rgba(12, 124, 89, 0.3);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+/* Hamburger toggle (desktop: hidden) */
+.topbar-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+  flex-shrink: 0;
+}
+
+.topbar-menu-btn:hover {
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+/* ============================================================
+   Hero
+   ============================================================ */
 .hero {
   padding: 16px 0 34px;
 }
@@ -157,6 +291,9 @@ h3 {
   font-size: 1.08rem;
 }
 
+/* ============================================================
+   Product Hunt card
+   ============================================================ */
 .producthunt-card {
   display: inline-flex;
   flex-direction: column;
@@ -166,6 +303,12 @@ h3 {
   border: 1px solid rgba(23, 20, 17, 0.08);
   border-radius: var(--radius-lg);
   background: rgba(255, 250, 241, 0.88);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.producthunt-card:hover {
+  box-shadow: 0 8px 24px rgba(196, 99, 47, 0.12);
+  transform: translateY(-2px);
 }
 
 .producthunt-label {
@@ -188,6 +331,9 @@ h3 {
   height: auto;
 }
 
+/* ============================================================
+   Hero actions
+   ============================================================ */
 .hero-actions {
   display: flex;
   flex-wrap: wrap;
@@ -205,21 +351,37 @@ h3 {
   border-radius: 22px;
   border: 1px solid rgba(23, 20, 17, 0.08);
   box-shadow: 0 20px 44px rgba(8, 16, 48, 0.16);
+  transition: box-shadow 0.35s ease, transform 0.35s ease;
 }
 
+.hero-visual img:hover {
+  box-shadow: 0 28px 56px rgba(8, 16, 48, 0.24);
+  transform: translateY(-3px);
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 48px;
-  padding: 0 18px;
+  padding: 0 22px;
   border-radius: 999px;
   font-weight: 700;
-  transition: transform 180ms ease, background 180ms ease;
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              background 200ms ease,
+              box-shadow 200ms ease;
 }
 
 .button:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 28px rgba(31, 24, 16, 0.16);
+}
+
+.button:active {
+  transform: translateY(-1px);
 }
 
 .button-primary {
@@ -227,11 +389,18 @@ h3 {
   background: linear-gradient(135deg, var(--accent-strong), var(--accent));
 }
 
+.button-primary:hover {
+  background: linear-gradient(135deg, #0a5f78, #0e9470);
+}
+
 .button-secondary {
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.65);
 }
 
+/* ============================================================
+   Hero panel (right column)
+   ============================================================ */
 .hero-panel {
   display: grid;
   gap: 14px;
@@ -249,6 +418,12 @@ h3 {
   border-radius: var(--radius-lg);
   background: rgba(255, 250, 241, 0.9);
   border: 1px solid rgba(23, 20, 17, 0.08);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.metric-card:hover {
+  box-shadow: 0 8px 24px rgba(12, 124, 89, 0.12);
+  transform: translateY(-2px);
 }
 
 .metric-card strong {
@@ -273,6 +448,54 @@ h3 {
   font-size: 0.96rem;
 }
 
+/* ============================================================
+   "What's New" banner
+   ============================================================ */
+.whats-new-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  margin-top: 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(12, 124, 89, 0.22);
+  background: linear-gradient(135deg, rgba(216, 239, 231, 0.7), rgba(255, 250, 241, 0.6));
+  font-size: 0.94rem;
+  transition: box-shadow 0.25s ease;
+}
+
+.whats-new-banner:hover {
+  box-shadow: 0 6px 20px rgba(12, 124, 89, 0.12);
+}
+
+.whats-new-badge {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.whats-new-text {
+  flex: 1;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.whats-new-text strong {
+  color: var(--accent-strong);
+}
+
+/* ============================================================
+   Sections
+   ============================================================ */
 .section {
   padding: 52px 0 10px;
 }
@@ -301,6 +524,9 @@ h3 {
   margin: 0;
 }
 
+/* ============================================================
+   Grids
+   ============================================================ */
 .tutorial-grid,
 .workflow-board,
 .reference-grid,
@@ -314,7 +540,10 @@ h3 {
 }
 
 .workflow-board {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* 5 step cards alternating with 4 narrow connector columns */
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr auto 1fr;
+  gap: 0 12px;
+  align-items: stretch;
 }
 
 .reference-grid {
@@ -325,6 +554,9 @@ h3 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+/* ============================================================
+   Tutorial cards
+   ============================================================ */
 .tutorial-card,
 .workflow-step,
 .panel,
@@ -338,6 +570,12 @@ h3 {
 .tutorial-card {
   display: grid;
   gap: 14px;
+  transition: box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.tutorial-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
 }
 
 .tutorial-index {
@@ -351,8 +589,17 @@ h3 {
   background: linear-gradient(135deg, var(--warm), #d98b4f);
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.94rem;
+  box-shadow: 0 4px 12px rgba(196, 99, 47, 0.28);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.tutorial-card:hover .tutorial-index {
+  transform: scale(1.12) rotate(-3deg);
+}
+
+/* ============================================================
+   Pills
+   ============================================================ */
 .pill-row {
   display: flex;
   flex-wrap: wrap;
@@ -362,14 +609,22 @@ h3 {
 .pill {
   display: inline-flex;
   align-items: center;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: rgba(8, 76, 97, 0.08);
   color: var(--accent-strong);
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.78rem;
+  transition: background 0.2s, color 0.2s;
 }
 
+.pill:hover {
+  background: rgba(8, 76, 97, 0.14);
+}
+
+/* ============================================================
+   Step list
+   ============================================================ */
 .step-list,
 .list-stack {
   display: grid;
@@ -382,9 +637,20 @@ h3 {
   line-height: 1.6;
 }
 
+/* ============================================================
+   Workflow steps
+   ============================================================ */
 .workflow-step {
   display: grid;
   gap: 12px;
+  align-content: start;
+  position: relative;
+  transition: box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.workflow-step:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
 }
 
 .workflow-step-number {
@@ -397,8 +663,27 @@ h3 {
   font-size: 0.8rem;
 }
 
+/* Arrow connector between workflow steps */
+.workflow-connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Reference panels
+   ============================================================ */
 .panel {
   background: rgba(255, 252, 246, 0.92);
+  transition: box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.panel:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
 }
 
 .panel-head {
@@ -422,6 +707,12 @@ h3 {
   border-radius: var(--radius-md);
   background: rgba(245, 239, 228, 0.84);
   border: 1px solid rgba(23, 20, 17, 0.07);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.list-item:hover {
+  background: rgba(245, 239, 228, 0.98);
+  border-color: rgba(12, 124, 89, 0.18);
 }
 
 .list-item strong,
@@ -445,12 +736,80 @@ h3 {
   font-size: 0.92rem;
 }
 
+/* Status color dots */
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.status-dot-processing {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  animation: pulse-amber 2s infinite;
+}
+
+.status-dot-active {
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(12, 124, 89, 0.2);
+  animation: pulse-green 2s infinite;
+}
+
+.status-dot-done {
+  background: #3b82f6;
+}
+
+.status-dot-human {
+  background: #8b5cf6;
+}
+
+.status-dot-applied {
+  background: var(--accent-strong);
+}
+
+.status-dot-failed {
+  background: var(--warm);
+}
+
+@keyframes pulse-amber {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2); }
+  50%       { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0.08); }
+}
+
+@keyframes pulse-green {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(12, 124, 89, 0.2); }
+  50%       { box-shadow: 0 0 0 5px rgba(12, 124, 89, 0.08); }
+}
+
+/* ============================================================
+   Command deck
+   ============================================================ */
+.command-card {
+  display: grid;
+  gap: 14px;
+  min-width: 0;          /* allow grid item to shrink below content size */
+  overflow: hidden;
+  transition: box-shadow 0.28s ease, transform 0.28s ease;
+}
+
+.command-card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
+}
+
 .code-block {
   position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
 }
 
 .command-card .command-code {
   display: block;
+  width: 100%;
   padding: 14px;
   padding-right: 72px;
   border-radius: var(--radius-md);
@@ -458,6 +817,9 @@ h3 {
   color: #f4ede2;
   overflow-x: auto;
   white-space: pre;
+  font-size: 0.86rem;
+  line-height: 1.6;
+  box-sizing: border-box;
 }
 
 .copy-btn {
@@ -486,6 +848,125 @@ h3 {
   color: #fff;
 }
 
+/* ============================================================
+   Token savings diagram (simple bar chart)
+   ============================================================ */
+.savings-chart {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.savings-row {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.savings-label {
+  color: var(--muted);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+}
+
+.savings-bar-track {
+  height: 10px;
+  background: rgba(23, 20, 17, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.savings-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  width: 0;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.savings-bar-fill.green { background: var(--accent); }
+.savings-bar-fill.amber { background: #f59e0b; }
+
+.savings-value {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+.site-footer {
+  margin-top: 72px;
+  padding: 32px 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.footer-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.footer-brand {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.footer-links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.footer-links a {
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.footer-links a:hover {
+  color: var(--accent);
+}
+
+.version-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(12, 124, 89, 0.2);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+/* Tighten topbar link spacing before hamburger breakpoint kicks in */
+@media (max-width: 900px) {
+  .topbar-links {
+    gap: 12px;
+    font-size: 0.88rem;
+  }
+}
+
 @media (max-width: 1024px) {
   .hero-grid,
   .tutorial-grid,
@@ -496,21 +977,74 @@ h3 {
 
   .workflow-board {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .workflow-connector {
+    display: none;
   }
 }
 
 @media (max-width: 720px) {
   .page-shell {
     width: min(calc(100% - 20px), var(--max-width));
-    padding-top: 12px;
+    padding-top: 70px;
   }
 
+  /* Single top row: brand … search btn … hamburger */
   .topbar {
-    border-radius: 24px;
-    padding: 16px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    border-radius: 20px;
+    padding: 12px 16px;
+    gap: 8px 10px;
   }
 
-  .topbar,
+  /* Search button: icon-only on mobile to keep topbar single-row */
+  .search-btn-label {
+    display: none;
+  }
+
+  .topbar-search-btn {
+    padding: 7px 10px;
+  }
+
+  /* Hamburger visible on mobile */
+  .topbar-menu-btn {
+    display: inline-flex;
+  }
+
+  /* Links collapsed by default; open as full-width second row */
+  .topbar-links {
+    display: none;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    font-size: 0.88rem;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  .topbar.open {
+    flex-wrap: wrap;
+  }
+
+  .topbar.open .topbar-links {
+    display: flex;
+  }
+
+  /* Prevent long inline code tokens from overflowing cards */
+  .list-item code,
+  .metric-sub code,
+  .hero-text code,
+  .whats-new-text code,
+  .workflow-step code,
+  .tutorial-card p code {
+    word-break: break-all;
+    overflow-wrap: anywhere;
+  }
+
   .panel-head {
     align-items: flex-start;
     flex-direction: column;
@@ -529,11 +1063,24 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .workflow-connector {
+    display: none;
+  }
+
   h1 {
     max-width: 100%;
   }
 
   .hero-visual {
     margin-top: 22px;
+  }
+
+  .site-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .savings-row {
+    grid-template-columns: 90px 1fr auto;
   }
 }

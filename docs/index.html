@@ -19,26 +19,21 @@
 <body>
   <div class="page-shell">
     <header class="hero">
-      <nav class="topbar">
-        <a class="brand" href="#top">ApplyForge Docs</a>
-        <div class="topbar-links">
-          <a href="#tutorials">Tutorials</a>
-          <a href="#reference">Reference</a>
-          <a href="#workflow">Workflow</a>
-          <a href="readme.html">Full Guide</a>
-        </div>
-      </nav>
 
       <div class="hero-grid" id="top">
-        <section class="hero-copy">
-          <p class="eyebrow">Static Tutorial Hub</p>
-          <h1>Run job-application automation without guessing setup order.</h1>
+        <section class="hero-copy reveal">
+          <p class="eyebrow">Automated Job Application Assistant</p>
+          <h1>Stop copy-pasting applications by hand.</h1>
           <p class="hero-text">
-            This project reads pending jobs from Google Sheets, generates tailored
-            cover letters and recruiter emails with OpenAI, writes row-selected
-            `.md` and `.docx` files, then uploads them to Google Drive on a daily
-            schedule.
+            ApplyForge reads pending jobs from your Google Spreadsheet, generates
+            personalized cover letters and recruiter emails with OpenAI, writes
+            per-row-selected <code>.md</code> and <code>.docx</code> files, then
+            uploads everything to Google Drive — every night, without intervention.
           </p>
+
+          <!-- What's New banner -->
+          <div class="whats-new-banner" id="whats-new-banner" aria-label="What's new"></div>
+
           <div class="producthunt-card">
             <p class="producthunt-label">Featured on Product Hunt</p>
             <a
@@ -56,40 +51,55 @@
               >
             </a>
           </div>
+
           <figure class="hero-visual">
             <img
               src="./assets/applyforge-overview.png"
               alt="ApplyForge workflow overview showing Sheets, OpenAI, document generation, Drive upload, and daily automation."
+              loading="lazy"
             >
           </figure>
+
           <div class="hero-actions">
             <a class="button button-primary" href="#tutorials">Start Tutorials</a>
-            <a class="button button-secondary" href="#reference">Open Reference</a>
+            <a class="button button-secondary" href="readme.html">Full Guide</a>
+            <a class="button button-secondary" href="#reference">Reference</a>
           </div>
         </section>
 
         <aside class="hero-panel">
-          <div class="metric-card">
+          <div class="metric-card reveal" style="transition-delay:0.1s">
             <span class="metric-label">Default Schedule</span>
             <strong>1:00 AM BST</strong>
-            <span class="metric-sub">GitHub Actions cron `0 19 * * *` UTC</span>
+            <span class="metric-sub">GitHub Actions cron <code>0 19 * * *</code> UTC — runs daily, zero maintenance</span>
           </div>
-          <div class="metric-card">
+          <div class="metric-card reveal" style="transition-delay:0.18s">
             <span class="metric-label">Outputs</span>
             <strong>Per-row toggles</strong>
-            <span class="metric-sub">Recruiter email + cover letter `.md` / `.docx` on demand</span>
+            <span class="metric-sub">Recruiter email + cover letter <code>.md</code> / <code>.docx</code> — only generate what you need</span>
           </div>
-          <div class="metric-card">
+          <div class="metric-card reveal" style="transition-delay:0.26s">
             <span class="metric-label">Primary Integrations</span>
-            <strong>Sheets, Drive, OpenAI</strong>
-            <span class="metric-sub">Scraping fills missing job descriptions</span>
+            <strong>Sheets · Drive · OpenAI</strong>
+            <span class="metric-sub">Web scraping fills missing job descriptions automatically</span>
+          </div>
+          <div class="metric-card reveal" style="transition-delay:0.34s">
+            <span class="metric-label">Token Savings (per 10-job run)</span>
+            <strong>~6 000 cached tokens</strong>
+            <span class="metric-sub">Resume profile cached in system prompt — 50 % cost from call 2 onward</span>
+          </div>
+          <div class="metric-card reveal" style="transition-delay:0.42s">
+            <span class="metric-label">Quality Assurance</span>
+            <strong>CI: lint + 17 tests</strong>
+            <span class="metric-sub">Ruff + unit tests run automatically on every push and PR</span>
           </div>
         </aside>
       </div>
     </header>
 
     <main>
-      <section class="section section-accent" id="tutorials">
+      <!-- ── Tutorials ──────────────────────────────────── -->
+      <section class="section section-accent" id="tutorials" aria-label="Setup tutorials">
         <div class="section-heading">
           <p class="eyebrow">Tutorials</p>
           <h2>Follow setup in real execution order.</h2>
@@ -100,15 +110,73 @@
         <div class="tutorial-grid" id="tutorial-grid"></div>
       </section>
 
-      <section class="section" id="workflow">
+      <!-- ── Workflow ───────────────────────────────────── -->
+      <section class="section" id="workflow" aria-label="How the workflow operates">
         <div class="section-heading">
           <p class="eyebrow">Workflow</p>
           <h2>How one job row becomes generated documents.</h2>
+          <p>
+            Each step processes independently — one failure does not stop the rest.
+          </p>
         </div>
-        <div class="workflow-board" id="workflow-board"></div>
+        <div class="workflow-board" id="workflow-board" role="list"></div>
       </section>
 
-      <section class="section" id="reference">
+      <!-- ── Token savings ─────────────────────────────── -->
+      <section class="section" id="cost" aria-label="Token cost overview">
+        <div class="section-heading reveal">
+          <p class="eyebrow">Cost Optimization</p>
+          <h2>~$0.002 per 10-job run.</h2>
+          <p>
+            Compact resume profiles + automatic OpenAI system-prompt caching keep
+            costs low. The profile is cached after the first call and reused at
+            50 % cost for every subsequent job in the same run.
+          </p>
+        </div>
+
+        <div class="reference-grid">
+          <article class="panel reveal">
+            <div class="panel-head">
+              <h3>Token cost per 10-job run</h3>
+              <span class="panel-kicker">gpt-4o-mini</span>
+            </div>
+            <div id="savings-chart" class="savings-chart"></div>
+            <p style="margin-top:14px;font-size:0.9rem;color:var(--muted)">
+              Savings come from embedding the resume in the <strong>system</strong> prompt.
+              OpenAI's automatic caching covers identical system-prompt prefixes —
+              all 10 jobs share the same cached profile.
+            </p>
+          </article>
+
+          <article class="panel reveal" style="transition-delay:0.12s">
+            <div class="panel-head">
+              <h3>Cost controls</h3>
+              <span class="panel-kicker">Variables</span>
+            </div>
+            <div class="table-list">
+              <div class="list-item">
+                <strong><code>MAX_JOBS_PER_RUN</code></strong>
+                <p>Hard cap per workflow execution. Default: <code>10</code>.</p>
+              </div>
+              <div class="list-item">
+                <strong><code>OPENAI_MODEL</code></strong>
+                <p>Default <code>gpt-4o-mini</code> — upgrade to <code>gpt-4o</code> only if output quality is insufficient.</p>
+              </div>
+              <div class="list-item">
+                <strong>JD character limit</strong>
+                <p>Job descriptions capped at 4 000 chars (cover letter) / 3 000 chars (email) before API calls.</p>
+              </div>
+              <div class="list-item">
+                <strong><code>max_tokens</code></strong>
+                <p>600 per cover letter · 400 per recruiter email — conservative limits prevent runaway cost.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- ── Reference ─────────────────────────────────── -->
+      <section class="section section-accent" id="reference" aria-label="Quick reference">
         <div class="section-heading">
           <p class="eyebrow">Reference</p>
           <h2>Relevant data in one place.</h2>
@@ -152,7 +220,8 @@
         </div>
       </section>
 
-      <section class="section section-accent" id="commands">
+      <!-- ── Command Deck ──────────────────────────────── -->
+      <section class="section" id="commands" aria-label="Command reference">
         <div class="section-heading">
           <p class="eyebrow">Command Deck</p>
           <h2>High-value commands you actually run.</h2>
@@ -160,8 +229,28 @@
         <div class="command-grid" id="command-grid"></div>
       </section>
     </main>
+
+    <!-- ── Footer ───────────────────────────────────────── -->
+    <footer class="site-footer" aria-label="Site footer">
+      <div class="footer-left">
+        <span class="footer-brand">ApplyForge</span>
+        <div class="footer-links">
+          <a href="https://github.com/FahimFBA/applyforge" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="readme.html">Full Guide</a>
+          <a href="https://github.com/FahimFBA/applyforge/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer">Changelog</a>
+          <a href="https://github.com/FahimFBA/applyforge/issues" target="_blank" rel="noopener noreferrer">Issues</a>
+        </div>
+      </div>
+      <span class="version-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        v1.13.0
+      </span>
+    </footer>
   </div>
 
+  <script src="./navbar.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

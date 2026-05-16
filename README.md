@@ -113,14 +113,16 @@ applyforge/
 │
 ├── .github/
 │   └── workflows/
-│       └── automation.yml          ← GitHub Actions daily workflow
-│       └── docs-site.yml           ← GitHub Pages deployment workflow
+│       ├── automation.yml          ← GitHub Actions daily workflow
+│       ├── ci.yml                  ← CI: lint (ruff) + unit tests on every push/PR
+│       ├── docs-site.yml           ← GitHub Pages deployment workflow
 │       └── release.yml             ← GitHub Release workflow on pushed tags
 │
 ├── docs/                           ← Static tutorial + reference website
 │   ├── index.html
 │   ├── styles.css
-│   └── app.js
+│   ├── app.js
+│   └── readme.html                 ← Full guide (renders README.md via marked.js)
 │
 ├── services/                       ← Modular service layer
 │   ├── __init__.py
@@ -133,6 +135,10 @@ applyforge/
 │   ├── prompts.py                  ← All AI prompt templates (overridable via PROMPT_* vars)
 │   ├── document_generator.py       ← .md and .docx file generation
 │   └── resume_optimizer.py         ← PDF extraction + profile loading
+│
+├── utils/                          ← Shared domain constants
+│   ├── __init__.py
+│   └── constants.py                ← Status values, column names, flag values, thresholds
 │
 ├── scripts/
 │   ├── process_resume.py           ← One-time resume preprocessing script
@@ -158,7 +164,9 @@ applyforge/
 │   └── .gitkeep
 │
 ├── main.py                         ← Entry point for the automation
-├── requirements.txt
+├── pyproject.toml                  ← Ruff linter + mypy type-checker configuration
+├── requirements.txt                ← Runtime dependencies
+├── requirements-dev.txt            ← Development dependencies (ruff, mypy)
 ├── example.env                     ← Environment variable reference
 ├── Dockerfile                      ← Docker image definition
 ├── docker-compose.yml              ← Compose config for local Docker runs
@@ -442,6 +450,12 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+For development (linting and type checking):
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 ### Step 4 — Configure environment variables
 
 ```bash
@@ -570,6 +584,12 @@ docker compose run --rm applyforge python scripts/process_resume.py
 
 Unit tests live in `tests/` and use Python's standard `unittest` framework, so no extra test dependency is required.
 
+### Install dev dependencies
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 ### Run all tests
 
 ```bash
@@ -588,6 +608,51 @@ python -m unittest discover -s tests -v
 
 - Tests for DOCX and PDF code paths stub optional third-party imports where needed, so logic can be verified in lightweight environments.
 - If you add new services or change workflow behavior, extend `tests/` in same PR to keep regressions visible.
+
+---
+
+## Linting and Code Quality
+
+The project uses [ruff](https://docs.astral.sh/ruff/) for fast Python linting
+and [mypy](https://mypy-lang.org/) for optional static type checking.
+Configuration lives in `pyproject.toml`.
+
+### Install dev dependencies
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+### Run the linter
+
+```bash
+ruff check .
+```
+
+### Auto-fix safe issues (import sorting, unused imports)
+
+```bash
+ruff check --fix .
+```
+
+### Run type checking
+
+```bash
+mypy services/ utils/ main.py
+```
+
+### CI enforcement
+
+Every push and pull request targeting `main` automatically runs linting and the
+full test suite via `.github/workflows/ci.yml`.  The workflow fails if ruff
+reports any violation or if any unit test fails.
+
+### Ruff rule set
+
+Rules enabled: `E`, `F`, `W` (style/errors), `I` (isort), `B` (bugbear), `UP`
+(pyupgrade).  Line length is 120.  Intentional exceptions (e.g. `load_dotenv`
+before service imports in `main.py`) are covered by `per-file-ignores` in
+`pyproject.toml` — no `# noqa` comments needed.
 
 ---
 
@@ -825,6 +890,23 @@ uses only the compact `.txt` profiles — never the original PDFs.
 | **Total per job** | | **~1 450 tokens ≈ $0.0002** |
 
 At `gpt-4o-mini` pricing, processing 10 jobs costs roughly **$0.002** per run.
+
+### Automatic OpenAI prompt caching
+
+The candidate resume profile is embedded in the **system prompt** for cover
+letter and recruiter email generation.  OpenAI's automatic prompt caching
+applies to identical system-prompt prefixes — after the first call, each
+subsequent call with the same resume profile hits the cache at **50 % token
+cost**.
+
+With 10 jobs × 2 generation calls per job, a 10-job run saves roughly
+**6 000 cached tokens** compared to embedding the profile in the user message.
+This benefit applies equally to default prompts and any custom `PROMPT_*`
+overrides — as long as the formatted system message (with resume embedded)
+is identical across calls in the same run.
+
+> Cache TTL on OpenAI's side is approximately 5–10 minutes.  All jobs in a
+> single workflow run share the cache window.
 
 ### Additional cost controls
 
