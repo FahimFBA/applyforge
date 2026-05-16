@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/FahimFBA/applyforge/security/advisories/new
+    about: Report vulnerabilities privately. Do not open public issues for security problems.
+  - name: Setup and usage documentation
+    url: https://github.com/FahimFBA/applyforge/blob/main/README.md
+    about: Check the README before opening support-style issues.

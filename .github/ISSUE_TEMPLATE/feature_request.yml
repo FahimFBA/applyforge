@@ -1,0 +1,41 @@
+name: Feature request
+description: Suggest an improvement to ApplyForge
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user or maintainer problem does this solve?
+      placeholder: Describe the gap in the current workflow or user experience.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the change you want to see.
+      placeholder: Explain the expected behavior, config, or workflow changes.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds or alternative approaches did you consider?
+  - type: textarea
+    id: impact
+    attributes:
+      label: Additional context
+      description: Include examples, screenshots, API constraints, or rollout concerns.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and pull requests for similar requests.
+          required: true
+        - label: This request is specific enough to be discussed and implemented.
+          required: true
