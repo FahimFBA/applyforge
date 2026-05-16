@@ -240,6 +240,16 @@ storage quota errors. This requires a one-time OAuth2 setup.
 3. If prompted, configure the OAuth consent screen first:
    - User type: **External** → fill in app name (e.g. `ApplyForge`) → save.
    - Leave the app in **Testing** mode (do not publish).
+
+   > **⚠️ Testing-mode token expiry:** Google OAuth refresh tokens issued while
+   > the app is in **Testing** mode expire after **7 days**.  After expiry, all
+   > Drive uploads will fail with an authentication error.  To fix it, rerun
+   > `python scripts/generate_refresh_token.py` and update
+   > `GOOGLE_OAUTH_REFRESH_TOKEN` in your GitHub repository secrets
+   > (**Settings → Secrets and variables → Actions → Secrets**).  You must do
+   > this every 7 days until you publish the app to production — publishing
+   > removes the expiry restriction entirely.
+
 4. **Add yourself as a test user** — this is required when the app is in Testing mode.
    Without this step, Google blocks the OAuth flow with "This app is blocked":
    - Still on the OAuth consent screen page, go to the **Test users** section.
@@ -972,6 +982,21 @@ content with `python scripts/process_resume.py` and paste the text of
 
 **Locally:** Run `python scripts/process_resume.py` so that `resumes/backend.txt`
 exists, or set `RESUME_BACKEND` in your `.env` file.
+
+### OAuth2 refresh token expired after 7 days
+
+If Drive uploads suddenly fail with an authentication error and your OAuth app is
+still in **Testing** mode, the refresh token has expired.  Google limits
+Testing-mode tokens to **7 days**.
+
+Fix:
+
+1. Rerun `python scripts/generate_refresh_token.py` to get a new refresh token.
+2. Update the `GOOGLE_OAUTH_REFRESH_TOKEN` secret in
+   **Settings → Secrets and variables → Actions → Secrets**.
+3. Repeat every 7 days, or publish the OAuth app to production
+   (**APIs & Services → OAuth consent screen → Publish app**) to remove the
+   7-day expiry restriction.
 
 ### OAuth2 token generation returns no refresh token
 
