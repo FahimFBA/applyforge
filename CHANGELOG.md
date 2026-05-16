@@ -7,6 +7,30 @@ This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.14.0] — 2026-05-16
+
+### Added
+
+- **`docs/navbar.js`** — global topbar injected on every docs page; detects
+  `readme.html` to show the search button and adjust anchor hrefs.
+- **`docs/readme.html`** — full guide page that fetches and renders `README.md`
+  via `marked.js`, with a keyboard-accessible search overlay (`⌘K` / `Ctrl+K`).
+
+### Changed
+
+- **`docs/styles.css`** — fixed mobile topbar overflow on `readme.html` caused by
+  wide README tables expanding the layout viewport; topbar now uses `left`/`right`
+  viewport-edge anchoring (`left: 16px; right: 16px; width: auto`) instead of
+  `left: 50% + transform: translateX(-50%)`; added `html { overflow-x: hidden }`.
+- **`docs/navbar.js`** — corrected navbar link order to match page section flow:
+  Tutorials → Workflow → Reference → Commands → Full Guide.
+- **`docs/index.html`** — loads `navbar.js`; minor markup updates.
+- **`docs/app.js`** — minor content and data updates.
+- **`README.md`** — updated file tree to include `utils/`, `ci.yml`, `readme.html`,
+  `pyproject.toml`, `requirements-dev.txt`; added linting and dev-deps sections.
+
+---
+
 ## [1.13.0] — 2026-05-16
 
 ### Added
